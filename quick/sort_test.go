@@ -76,38 +76,44 @@ func BenchmarkLomuto_BySize(b *testing.B) {
 }
 
 func BenchmarkLomuto_ByCase(b *testing.B) {
-	bestCase := make([]int, 1000)
+	N := 1000
+	bestCase := make([]int, N)
 	for i := range bestCase {
 		bestCase[i] = i
 	}
-	worstCase := make([]int, 1000)
+	worstCase := make([]int, N)
 	for i := range worstCase {
-		worstCase[i] = 1000 - i
+		worstCase[i] = N - i
 	}
 	avgCases := make([][]int, 5)
 	for i, a := range avgCases {
-		a = make([]int, 1000)
+		a = make([]int, N)
 		copy(a, bestCase)
-		rand.Shuffle(1000, func(i, j int) {
+		rand.Shuffle(N, func(i, j int) {
 			a[i], a[j] = a[j], a[i]
 		})
 		avgCases[i] = a
 	}
 
+	// Algo sorts in-place. Need to create a copy
+	input := make([]int, N)
 	b.Run("Best-case", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			Lomuto(bestCase, 0, 999)
+			copy(input, bestCase)
+			Lomuto(input, 0, N-1)
 		}
 	})
 	b.Run("Worst-case", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			Lomuto(worstCase, 0, 999)
+			copy(input, worstCase)
+			Lomuto(input, 0, N-1)
 		}
 	})
 	for i, a := range avgCases {
 		b.Run(fmt.Sprintf("Average case %d", i), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				Lomuto(a, 0, 999)
+				copy(input, a)
+				Lomuto(input, 0, N-1)
 			}
 		})
 	}
